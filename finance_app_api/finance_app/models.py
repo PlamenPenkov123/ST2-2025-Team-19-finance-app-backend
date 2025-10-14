@@ -1,122 +1,115 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-from django.core.validators import MinLengthValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 from decimal import Decimal
-import uuid
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 # Create your models here.
+class UserManager(BaseUserManager):
+    def create_user(self, email, username, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        if not username:
+            raise ValueError('The Username field must be set')
+
+        email = self.normalize_email(email)
+        user = self.model(email=email, username=username, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, username, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self.create_user(email, username, password, **extra_fields)        
+    
 class User(AbstractUser):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True, unique=True, editable=False)
     email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
-    currency = models.CharField(max_length=3, default='BGN')
-    monthly_budget = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=0.00,
-        validators=[MinLengthValidator(Decimal('0.00'))]
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+    objects = UserManager()
 
-    def __str__(self):
-        return self.email
-    
-class Category(models.Model):
-    CATEGORY_TYPES = [
-        ('INCOME', 'income'),
-        ('EXPENSE', 'expense')
-    ]
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='categories')
+class PaymentMethod(models.Model):
+    id = models.AutoField(primary_key=True, unique=True, editable=False)
     name = models.CharField(max_length=100)
-    type = models.CharField(max_length=7, choices=CATEGORY_TYPES)
-    color = models.CharField(max_length=7, default='#000000')
-    icon = models.CharField(max_length=50, blank=True, null=True)
-    description = models.TextField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
+    slug = models.SlugField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name_plural = "Categories"
-        unique_together = ['user', 'name', 'type']
+        verbose_name_plural = "Payment Methods"
     
     def __str__(self):
-        return f"{self.user.email} - {self.name} ({self.type})"
+        return self.name
+
+class IncomeCategory(models.Model):
+    id = models.AutoField(primary_key=True, unique=True, editable=False)
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "Income Categories"
+    
+class ExpenseCategory(models.Model):
+    id = models.IntegerField(primary_key=True, unique=True, editable=False)
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name_plural = "Expense Categories"
     
 class Income(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='incomes')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='incomes')
-    amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinLengthValidator(Decimal('0.01'))]
+    income_category = models.ForeignKey(IncomeCategory, null=True, on_delete=models.CASCADE, related_name='incomes')
+    amount = models.FloatField(
+        default=0.00,
+        validators=[MinValueValidator(0.00)]
     )
     description = models.TextField(blank=True, null=True)
     source = models.CharField(max_length=200)
     date = models.DateField()
-    is_recurring = models.BooleanField(default=False)
-    reccuring_frequency = models.CharField(
-        max_length=20,
-        blank=True,
-        null=True,
-        choises=[
-            ('DAILY', 'Daily'),
-            ('WEEKLY', 'Weekly'),
-            ('MONTHLY', 'Monthly'),
-            ('YEARLY', 'Yearly'),
-        ]
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-date', '-created_at']
-
-    def __str__(self):
-        return f"{self.user.email} - {self.amount} - {self.date}"
-
-class Expense:
-    PAYMENT_METHODS = [
-        ('CASH', 'Cash'),
-        ('CREDIT_CARD', 'Credit Card'),
-        ('DEBIT_CARD', 'Debit Card'),
-        ('BANK_TRANSFER', 'Bank Transfer'),
-        ('DIGITAL_WALLET', 'Digital Wallet'),
-        ('OTHER', 'Other'),
-    ]
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='expenses')
-    amount = models.DecimalField(
-        max_digits=12, 
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))]
-    )
-    description = models.TextField(blank=True, null=True)
-    date = models.DateField()
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='CASH')
-    location = models.CharField(max_length=200, blank=True, null=True)
-    is_essential = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-date', '-created_at']
     
-    def __str__(self):
-        return f"{self.user.email} - {self.amount} - {self.date}"
+class Expense(models.Model):
+    id = models.AutoField(primary_key=True, unique=True, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
+    expense_category = models.ForeignKey(ExpenseCategory, null=True, on_delete=models.CASCADE, related_name='expenses')
+    amount = models.FloatField(
+        default=0.00,
+        validators=[MinValueValidator(0.00)]
+    )
+    description = models.TextField(blank=True, null=True)
+    date = models.DateField()
+    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+    
 
 class Budget(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.AutoField(primary_key=True, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budgets')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='budgets')
     amount = models.DecimalField(
         max_digits=12,
         decimal_places=2,
@@ -128,5 +121,7 @@ class Budget(models.Model):
 
 
     class Meta:
-        unique_together = ['user', 'category', 'month']
-        ordering = ['-month', '-category_name']
+        unique_together = ['user', 'month']
+        ordering = ['-month']
+
+    
