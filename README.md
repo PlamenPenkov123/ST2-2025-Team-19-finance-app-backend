@@ -12,7 +12,7 @@ This is the backend for the Finance App. Follow the instructions below to set up
 1. **Clone the repository**
     ```bash
     git clone <repository-url>
-    cd finance-app-backend
+    cd finance-app-api
     ```
 
 2. **Create and activate a virtual environment**
