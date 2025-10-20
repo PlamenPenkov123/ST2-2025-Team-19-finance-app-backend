@@ -1,30 +1,34 @@
 from django.urls import path
-
-from . import views 
+from .views.AuthManager import AuthManager
+from .views.IncomeCategoryManager import IncomeCategoryManager
+from .views.ExpenseCategoryManager import ExpenseCategoryManager
+from .views.PaymentMethodManager import PaymentMethodManager
+from .views.ExpenseManager import ExpenseManager
+from .views.IncomeManager import IncomeManager
 
 urlpatterns = [
-    path('income-categories', views.IncomeCategoryManager.getIncomeTypes, name='get_income_types'),
+    path('income-categories', IncomeCategoryManager.as_view(), name='get_income_types'),
 
-    path('expense-categories', views.ExpenseCategoryManager.getExpenseTypes, name='get_expense_types'),
+    path('expense-categories', ExpenseCategoryManager.as_view(), name='get_expense_types'),
 
-    path('payment-methods', views.PaymentMethodManager.getPaymentMethods, name='get_payment_methods'),
+    path('payment-methods', PaymentMethodManager.as_view(), name='get_payment_methods'),
 
-    path('register', views.AuthManager.registerUser, name='register'),
-    path('login', views.AuthManager.loginUser, name='login'),
-    path('logout', views.AuthManager.logoutUser, name='logout'),
-    path('logout-all', views.AuthManager.logoutAllSessions, name='logout_all'),
-    path('profile', views.AuthManager.getCurrentUser, name='profile'),
-    path('profile/update', views.AuthManager.updateUser, name='update_profile'),
+    path('register', AuthManager.registerUser, name='register'),
+    path('login', AuthManager.loginUser, name='login'),
+    path('logout', AuthManager.logoutUser, name='logout'),
+    path('logout-all', AuthManager.logoutAllSessions, name='logout_all'),
+    path('profile', AuthManager.getCurrentUser, name='profile'),
+    path('profile/update', AuthManager.updateUser, name='update_profile'),
 
-    path('incomes', views.IncomeManager.getIncomes, name='get_incomes'),
-    path('incomes/create', views.IncomeManager.createIncome, name='create_income'),
-    path('incomes/<int:income_id>', views.IncomeManager.getIncomeById, name='get_income_by_id'),
-    path('incomes/<int:income_id>/update', views.IncomeManager.updateIncome, name='update_income'),
-    path('incomes/<int:income_id>/delete', views.IncomeManager.deleteIncome, name='delete_income'),
+    path('incomes', IncomeManager.as_view(), name='get_incomes'),
+    path('incomes/create', IncomeManager.as_view(), name='create_income'),
+    path('incomes/<int:income_id>', IncomeManager.getById, name='get_income_by_id'),
+    path('incomes/<int:income_id>/update', IncomeManager.as_view(), name='update_income'),
+    path('incomes/<int:income_id>/delete', IncomeManager.as_view(), name='delete_income'),
 
-    path('expenses', views.ExpenseManager.getExpenses, name='get_expenses'),
-    path('expenses/create', views.ExpenseManager.createExpense, name='create_expense'),
-    path('expenses/<int:expense_id>', views.ExpenseManager.getExpenseById, name='get_expense_by_id'),
-    path('expenses/<int:expense_id>/update', views.ExpenseManager.updateExpense, name='update_expense'),
-    path('expenses/<int:expense_id>/delete', views.ExpenseManager.deleteExpense, name='delete_expense'),
+    path('expenses', ExpenseManager.as_view(), name='get_expenses'),
+    path('expenses/create', ExpenseManager.as_view(), name='create_expense'),
+    path('expenses/<int:expense_id>/', ExpenseManager.getById, name='get_expense_by_id'),
+    path('expenses/<int:expense_id>/update', ExpenseManager.as_view(), name='update_expense'),
+    path('expenses/<int:expense_id>/delete', ExpenseManager.as_view(), name='delete_expense'),
 ]

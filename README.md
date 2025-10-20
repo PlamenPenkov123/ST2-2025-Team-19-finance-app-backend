@@ -4,7 +4,7 @@ This is the backend for the Finance App. Follow the instructions below to set up
 
 ## Prerequisites
 
-- Python 3.x installed
+- `Python 3.x` installed
 - `pip` installed
 
 ## Setup
@@ -31,7 +31,7 @@ This is the backend for the Finance App. Follow the instructions below to set up
 Run the following command to apply migrations:
 
 ```bash
-python manage.py migrate
+python3 manage.py migrate
 ```
 
 ## Running the Project
@@ -39,5 +39,5 @@ python manage.py migrate
 Start the development server:
 
 ```bash
-python manage.py runserver
+python3 manage.py runserver
 ```
