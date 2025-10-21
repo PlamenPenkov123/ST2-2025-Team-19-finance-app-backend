@@ -41,6 +41,27 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['username']
     objects = UserManager()
 
+class Budget(models.Model):
+    id = models.AutoField(primary_key=True, unique=True, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budgets')
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+    current_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+    month = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        unique_together = ['user', 'month']
+        ordering = ['-month']
 
 class PaymentMethod(models.Model):
     id = models.AutoField(primary_key=True, unique=True, editable=False)
@@ -76,6 +97,7 @@ class Income(models.Model):
     id = models.AutoField(primary_key=True, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='incomes')
     income_category = models.ForeignKey(IncomeCategory, null=True, on_delete=models.CASCADE, related_name='incomes')
+    budget = models.ForeignKey(Budget, null=True, on_delete=models.CASCADE, related_name='incomes')
     amount = models.FloatField(
         default=0.00,
         validators=[MinValueValidator(0.00)]
@@ -93,6 +115,7 @@ class Expense(models.Model):
     id = models.AutoField(primary_key=True, unique=True, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
     expense_category = models.ForeignKey(ExpenseCategory, null=True, on_delete=models.CASCADE, related_name='expenses')
+    budget = models.ForeignKey(Budget, null=True, on_delete=models.CASCADE, related_name='expenses')
     amount = models.FloatField(
         default=0.00,
         validators=[MinValueValidator(0.00)]
@@ -107,26 +130,6 @@ class Expense(models.Model):
         ordering = ['-date', '-created_at']
     
 
-class Budget(models.Model):
-    id = models.AutoField(primary_key=True, unique=True, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budgets')
-    amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.00'))]
-    )
-    current_amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.00'))]
-    )
-    month = models.DateField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
-
-    class Meta:
-        unique_together = ['user', 'month']
-        ordering = ['-month']
 
     
