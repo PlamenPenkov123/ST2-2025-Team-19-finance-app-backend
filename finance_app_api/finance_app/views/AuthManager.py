@@ -8,7 +8,7 @@ from knox.models import AuthToken
 from ..models import User
 from ..serializers import UserSerializer, UserRegistrationSerializer, UserLoginSerializer
 
-class AuthManager(APIView):
+class AuthManager():
     @api_view(['GET'])
     def getUsers(request):
         users = User.objects.all()

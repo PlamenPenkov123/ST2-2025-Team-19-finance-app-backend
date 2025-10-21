@@ -11,10 +11,11 @@ class BudgetManager(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
-    def getBudgetOverview(self, request):
+    def get(self, request):
         user = request.user
-        incomes = Income.objects.filter(user=user)
-        expenses = Expense.objects.filter(user=user)
+        budget = Budget.objects.filter(user=user, month__year=request.GET.get('month', None))
+        incomes = Income.objects.filter(user=user, date__month=request.GET.get('month', None))
+        expenses = Expense.objects.filter(user=user, date__month=request.GET.get('month', None))
 
         total_income = sum(income.amount for income in incomes)
         total_expense = sum(expense.amount for expense in expenses)
@@ -23,13 +24,14 @@ class BudgetManager(APIView):
         overview = {
             'total_income': total_income,
             'total_expense': total_expense,
+            'incomes': BudgetSerializer(incomes, many=True).data,
+            'expenses': BudgetSerializer(expenses, many=True).data,
             'balance': balance
         }
 
         return Response(overview, status=status.HTTP_200_OK)
-    
-    @api_view(['POST'])
-    def setBudgetGoal(request):
+
+    def post(self, request):
         user = request.user
         goal_amount = request.data.get('amount')
         month = request.data.get('month')
@@ -51,18 +53,38 @@ class BudgetManager(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @api_view(['GET'])
-    def getBudget(request):
+    def patch(self, request, budget_id):
         user = request.user
-        month = request.query_params.get('month')
-        
-        if month is None:
-            return Response({"error": "Month is required"}, status=status.HTTP_400_BAD_REQUEST)
-        
         try:
-            budget = Budget.objects.get(user=user, month=month)
+            budget = Budget.objects.get(id=budget_id, user=user)
         except Budget.DoesNotExist:
-            return Response({"error": "Budget not found for the specified month"}, status=status.HTTP_404_NOT_FOUND)
-        
+            return Response({"error": "Budget not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        goal_amount = request.data.get('amount')
+        if goal_amount is None:
+            return Response({"error": "Goal amount is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        old_amount = budget.amount
+        budget.amount = goal_amount
+        budget.current_amount += (goal_amount - old_amount)
+        budget.save()
+
         serializer = BudgetSerializer(budget)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def delete(self, request, budget_id):
+        user = request.user
+        try:
+            budget = Budget.objects.get(id=budget_id, user=user)
+            expenses = Expense.objects.filter(user=user, date__month=budget.month.month, date__year=budget.month.year)
+            incomes = Income.objects.filter(user=user, date__month=budget.month.month, date__year=budget.month.year)
+        except Budget.DoesNotExist:
+            return Response({"error": "Budget not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        for expense in expenses:
+            expense.delete()
+        for income in incomes:
+            income.delete()
+        budget.delete()
+        return Response({"message": "Budget deleted successfully"}, status=status.HTTP_200_OK)
+    

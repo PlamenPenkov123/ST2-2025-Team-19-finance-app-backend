@@ -54,7 +54,15 @@ class IncomeManager(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            budget = Budget.objects.filter(user=user, month=serializer.validated_data['date'].month).first()
+            if budget:
+                old_amount = income.amount
+                new_amount = serializer.validated_data.get('amount', old_amount)
+                budget.current_amount += (new_amount - old_amount)
+                budget.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "No budget set for this month"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, income_id):
@@ -63,7 +71,13 @@ class IncomeManager(APIView):
             income = Income.objects.get(id=income_id, user=user)
         except Income.DoesNotExist:
             return Response({"error": "Income not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        income.delete()
+
+        budget = Budget.objects.filter(user=user, month=income.date.month).first()
+        if budget:
+            budget.current_amount -= income.amount
+            budget.save()
+            income.delete()
+        else:
+            return Response({"error": "No budget set for this month"}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"message": "Income deleted successfully"}, status=status.HTTP_200_OK)
     

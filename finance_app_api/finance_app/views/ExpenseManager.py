@@ -30,7 +30,9 @@ class ExpenseManager(APIView):
             if budget:
                 budget.current_amount += serializer.validated_data['amount']
                 budget.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({"error": "No budget set for this month"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @api_view(['GET'])
@@ -54,8 +56,16 @@ class ExpenseManager(APIView):
         serializer = ExpenseSerializer(expense, data=request.data, partial=True)
 
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            budget = Budget.objects.filter(user=user, month=serializer.validated_data['date'].month).first()
+            if budget:
+                old_amount = expense.amount
+                new_amount = serializer.validated_data.get('amount', old_amount)
+                budget.current_amount += (new_amount - old_amount)
+                budget.save()
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "No budget set for this month"}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, expense_id):
@@ -64,6 +74,12 @@ class ExpenseManager(APIView):
             expense = Expense.objects.get(id=expense_id, user=user)
         except Expense.DoesNotExist:
             return Response({"error": "Expense not found"}, status=status.HTTP_404_NOT_FOUND)
-        
-        expense.delete()
-        return Response({"message": "Expense deleted successfully"}, status=status.HTTP_200_OK)
+
+        budget = Budget.objects.filter(user=user, month=expense.date.month).first()
+        if budget:
+            budget.current_amount += expense.amount
+            budget.save()
+            expense.delete()
+            return Response({"message": "Expense deleted successfully"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "No budget set for this month"}, status=status.HTTP_400_BAD_REQUEST)
