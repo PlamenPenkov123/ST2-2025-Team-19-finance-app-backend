@@ -8,16 +8,19 @@ from knox.auth import TokenAuthentication
 from ..models import Expense, Budget
 from ..serializers import ExpenseSerializer
 
+
 class ExpenseManager(APIView):
     # Set the permission and authentication classes for the entire view
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
+    
     # Get all expenses for the authenticated user
     def get(self, request):
         user = request.user
         expenses = Expense.objects.filter(user=user)
         serializer = ExpenseSerializer(expenses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
     # Get a single expense by it's id
     @api_view(['GET'])
     def getById(request, expense_id):
@@ -28,6 +31,7 @@ class ExpenseManager(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Expense.DoesNotExist:
             return Response({"error": "Expense not found"}, status=status.HTTP_404_NOT_FOUND)
+        
     # Create an expense
     def post(self, request):
         user = request.user
@@ -49,6 +53,7 @@ class ExpenseManager(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Expense.DoesNotExist:
             return Response({"error": "Expense not found"}, status=status.HTTP_404_NOT_FOUND)
+        
     # Patch an expense
     def patch(self, request, expense_id):
         user = request.user
@@ -70,6 +75,7 @@ class ExpenseManager(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Expense.DoesNotExist:
             return Response({"error": "Expense not found"}, status=status.HTTP_404_NOT_FOUND)
+        
     # Delete an expense
     def delete(self, request, expense_id):
         user = request.user

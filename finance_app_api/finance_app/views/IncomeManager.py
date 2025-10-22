@@ -8,16 +8,19 @@ from knox.auth import TokenAuthentication
 from ..models import Income, Budget
 from ..serializers import IncomeSerializer
 
+
 class IncomeManager(APIView):
     # Set the permission and authentication classes for the entire view
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
+    
     # Get all incomes for the authenticated user
     def get(self, request):
         user = request.user
         incomes = Income.objects.filter(user=user)
         serializer = IncomeSerializer(incomes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
     # Get a single income by it's id
     @api_view(['GET'])    
     def getById(self, request, income_id):
@@ -28,6 +31,7 @@ class IncomeManager(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Income.DoesNotExist:
             return Response({"error": "Income not found"}, status=status.HTTP_404_NOT_FOUND)
+        
     # Create an income
     def post(self, request):
         user = request.user
@@ -47,6 +51,7 @@ class IncomeManager(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Income.DoesNotExist:
             return Response({"error": "Income not found"}, status=status.HTTP_404_NOT_FOUND)
+        
     # Patch an income
     def patch(self, request, income_id):
         user = request.user
@@ -68,6 +73,7 @@ class IncomeManager(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Income.DoesNotExist:
             return Response({"error": "Income not found"}, status=status.HTTP_404_NOT_FOUND)
+        
     # Delete an income
     def delete(self, request, income_id):
         user = request.user

@@ -8,8 +8,8 @@ from knox.models import AuthToken
 from django.db import transaction
 from ..serializers import UserSerializer, UserRegistrationSerializer, UserLoginSerializer
 
-class AuthManager():
 
+class AuthManager():
     # Register an user
     @api_view(['POST'])
     @permission_classes([AllowAny])
@@ -66,26 +66,24 @@ class AuthManager():
     @permission_classes([IsAuthenticated])
     @authentication_classes([TokenAuthentication])
     def logoutUser(request):
-        if request.method == 'POST':
-            try:
-                with transaction.atomic():
-                    request._auth.delete()  # Delete the token to log out the user
-                    return Response({"message": "User logged out successfully"}, status=status.HTTP_200_OK)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            with transaction.atomic():
+                request._auth.delete()  # Delete the token to log out the user
+                return Response({"message": "User logged out successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
     # Logout an user from all devices
     @api_view(['POST'])
     @permission_classes([IsAuthenticated])
     @authentication_classes([TokenAuthentication])
     def logoutAllSessions(request):
-        if request.method == 'POST':
-            try:
-                with transaction.atomic():
-                    request.user.auth_token_set.all().delete()  # Delete all tokens for the user
-                    return Response({"message": "User logged out successfully"}, status=status.HTTP_200_OK)
-            except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            with transaction.atomic():
+                request.user.auth_token_set.all().delete()  # Delete all tokens for the user
+                return Response({"message": "User logged out successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
             
     # Update an user
     @api_view(['PATCH'])
