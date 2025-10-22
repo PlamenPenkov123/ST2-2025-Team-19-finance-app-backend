@@ -26,7 +26,7 @@ class ExpenseCategoryAdmin(admin.ModelAdmin):
 @admin.register(Income)
 class IncomeAdmin(admin.ModelAdmin):
     model = Income
-    list_display = ('user', 'income_category', 'amount', 'source', 'date', 'created_at')
+    list_display = ('user', 'income_category__name', 'amount', 'source', 'date', 'created_at')
     search_fields = ('user__email', 'income_category__name', 'source')
     ordering = ('-date', '-created_at')
 @admin.register(Expense)
@@ -47,4 +47,3 @@ class BudgetAdmin(admin.ModelAdmin):
     list_display = ('user', 'amount', 'month', 'created_at')
     search_fields = ('user__email', 'month')
     ordering = ('-month', '-created_at')
-
