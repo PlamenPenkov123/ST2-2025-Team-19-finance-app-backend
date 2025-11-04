@@ -20,7 +20,7 @@ class AuthManager():
                 with transaction.atomic():
                     if serializer.is_valid():
                         user = serializer.save()
-                        token, _ = AuthToken.objects.create(user=user)
+                        token = AuthToken.objects.create(user=user)[1]
                         reponseDate = {
                             'message': 'User registered successfully',
                             'user': UserSerializer(user).data,
