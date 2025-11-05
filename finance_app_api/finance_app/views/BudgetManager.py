@@ -13,21 +13,48 @@ class BudgetManager(APIView):
 
     def get(self, request):
         user = request.user
-        budget = Budget.objects.filter(user=user, month__year=request.GET.get('month', None))
-        incomes = Income.objects.filter(user=user, date__month=request.GET.get('month', None))
-        expenses = Expense.objects.filter(user=user, date__month=request.GET.get('month', None)
-                                          )
+        now = timezone.now()
+
+        # 1. Get year and month from query params, defaulting to current month/year
+        try:
+            year = int(request.GET.get('year', now.year))
+            month = int(request.GET.get('month', now.month))
+        except (ValueError, TypeError):
+            # Handle invalid (non-integer) input
+            year = now.year
+            month = now.month
+
+        # 2. Get the single Budget object using .get()
+        #    This is safer because of your `unique_together` constraint
+        try:
+            # Assumes your Budget.month field is a DateField (e.g., 2023-11-01)
+            budget = Budget.objects.get(user=user, month__year=year, month__month=month)
+            budget_amount = budget.amount
+            current_budget_amount = budget.current_amount
+        except Budget.DoesNotExist:
+            # No budget was found for this user/month
+            budget_amount = None  # Or 0, depending on your desired default
+            current_budget_amount = None # Or 0
+
+        # 3. Filter Incomes and Expenses by *both* year and month
+        incomes = Income.objects.filter(user=user, date__year=year, date__month=month)
+        expenses = Expense.objects.filter(user=user, date__year=year, date__month=month)
 
         total_income = sum(income.amount for income in incomes)
         total_expense = sum(expense.amount for expense in expenses)
         balance = total_income - total_expense
 
+        # 4. Add the new fields to your overview dictionary
         overview = {
             'total_income': total_income,
             'total_expense': total_expense,
+            # NOTE: You are using BudgetSerializer. You probably mean to use
+            # an IncomeSerializer and an ExpenseSerializer here.
             'incomes': BudgetSerializer(incomes, many=True).data,
             'expenses': BudgetSerializer(expenses, many=True).data,
-            'balance': balance
+            'balance': balance,
+            'amount': budget_amount,             # Here is the budget amount
+            'current_amount': current_budget_amount  # Here is the current amount
         }
 
         return Response(overview, status=status.HTTP_200_OK)
