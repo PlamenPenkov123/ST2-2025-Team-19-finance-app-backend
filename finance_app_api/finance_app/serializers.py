@@ -15,7 +15,7 @@ class ExpenseCategorySerializer(serializers.ModelSerializer):
 class PaymentMethodSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentMethod
-        fields = '__all__'
+        fields = ['name', 'slug']
 class BudgetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Budget
