@@ -49,7 +49,7 @@ class ExpenseManager(APIView):
                     serializer.save()
                     budget = Budget.objects.filter(user=user, month__month=serializer.validated_data['date'].month, month__year=serializer.validated_data['date'].year).first()
                     if budget:
-                        budget.current_amount += serializer.validated_data['amount']
+                        budget.current_amount -= serializer.validated_data['amount']
                         budget.save()
                         return Response(serializer.data, status=status.HTTP_201_CREATED)
                     else:
