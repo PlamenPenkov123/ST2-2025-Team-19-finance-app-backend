@@ -22,14 +22,19 @@ class ExpenseManager(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     # Get a single expense by it's id
-    def get(request, expense_id):
+    def get(self, request, expenes_id=None):
         user = request.user
-        try:
-            expense = Expense.objects.get(id=expense_id, user=user)    
-            serializer = ExpenseSerializer(expense)
+        if expenes_id:
+            try:
+                expense = Expense.objects.get(id=expenes_id, user=user)
+                serializer = ExpenseSerializer(expense)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Expense.DoesNotExist:
+                return Response({"error": "Expense not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            expenses = Expense.objects.filter(user=user)
+            serializer = ExpenseSerializer(expenses, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Expense.DoesNotExist:
-            return Response({"error": "Expense not found"}, status=status.HTTP_404_NOT_FOUND)
         
     # Create an expense
     def post(self, request):

@@ -14,22 +14,20 @@ class IncomeManager(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
     
-    # Get all incomes for the authenticated user
-    def get(self, request):
+    # Get single or multiple incomes
+    def get(self, request, income_id=None):
         user = request.user
-        incomes = Income.objects.filter(user=user)
-        serializer = IncomeSerializer(incomes, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    # Get a single income by it's id
-    def get(self, request, income_id):
-        user = request.user
-        try:
-            income = Income.objects.get(id=income_id, user=user)
-            serializer = IncomeSerializer(income)
+        if income_id:
+            try:
+                income = Income.objects.get(id=income_id, user=user)
+                serializer = IncomeSerializer(income)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Income.DoesNotExist:
+                return Response({"error": "Income not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            incomes = Income.objects.filter(user=user)
+            serializer = IncomeSerializer(incomes, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Income.DoesNotExist:
-            return Response({"error": "Income not found"}, status=status.HTTP_404_NOT_FOUND)
         
     # Create an income
     def post(self, request):
