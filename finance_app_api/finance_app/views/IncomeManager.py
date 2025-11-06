@@ -51,10 +51,13 @@ class IncomeManager(APIView):
     # Patch an income
     def patch(self, request, income_id):
         user = request.user
+        data = request.data.copy()
+        data['user'] = user.id
+        
         try:
             with transaction.atomic():
                 income = Income.objects.get(id=income_id, user=user)
-                serializer = IncomeSerializer(income, data=request.data, partial=True)
+                serializer = IncomeSerializer(income, data=data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
                     budget = Budget.objects.filter(user=user, month__month=serializer.validated_data['date'].month, month__year=serializer.validated_data['date'].year).first()

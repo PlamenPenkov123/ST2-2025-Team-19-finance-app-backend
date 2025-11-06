@@ -61,10 +61,13 @@ class ExpenseManager(APIView):
     # Patch an expense
     def patch(self, request, expense_id):
         user = request.user
+        data = request.data.copy()
+        data['user'] = user.id
+        
         try:
             with transaction.atomic():
                 expense = Expense.objects.get(id=expense_id, user=user)
-                serializer = ExpenseSerializer(data=request.data, partial=True)
+                serializer = ExpenseSerializer(expense, data=data, partial=True)
                 if serializer.is_valid():
                     budget = Budget.objects.filter(user=user, month__month=serializer.validated_data['date'].month, month__year=serializer.validated_data['date'].year).first()
                     if budget:
