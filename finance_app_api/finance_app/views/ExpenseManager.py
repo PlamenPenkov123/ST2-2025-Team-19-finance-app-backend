@@ -43,7 +43,7 @@ class ExpenseManager(APIView):
                 serializer = ExpenseSerializer(data=data)
                 if serializer.is_valid():
                     serializer.save()
-                    budget = Budget.objects.filter(user=user, month=serializer.validated_data['date'].month).first()
+                    budget = Budget.objects.filter(user=user, month__month=serializer.validated_data['date'].month, month__year=serializer.validated_data['date'].year).first()
                     if budget:
                         budget.current_amount += serializer.validated_data['amount']
                         budget.save()
@@ -62,7 +62,7 @@ class ExpenseManager(APIView):
                 expense = Expense.objects.get(id=expense_id, user=user)
                 serializer = ExpenseSerializer(expense, data=request.data, partial=True)
                 if serializer.is_valid():
-                    budget = Budget.objects.filter(user=user, month=serializer.validated_data['date'].month).first()
+                    budget = Budget.objects.filter(user=user, month__month=serializer.validated_data['date'].month, month__year=serializer.validated_data['date'].year).first()
                     if budget:
                         old_amount = expense.amount
                         new_amount = serializer.validated_data.get('amount', old_amount)

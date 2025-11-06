@@ -37,13 +37,13 @@ class IncomeManager(APIView):
         user = request.user
         data = request.data.copy()
         data['user'] = user.id
+        print(data)
         try:
             with transaction.atomic():
                 serializer = IncomeSerializer(data=data)
-
                 if serializer.is_valid():
                     serializer.save()
-                    budget = Budget.objects.filter(user=user, month=serializer.validated_data['date'].month).first()
+                    budget = Budget.objects.filter(user=user, month__month=serializer.validated_data['date'].month, month__year=serializer.validated_data['date'].year).first()
                     if budget:
                         budget.current_amount += serializer.validated_data['amount']
                         budget.save()
@@ -61,7 +61,7 @@ class IncomeManager(APIView):
                 serializer = IncomeSerializer(income, data=request.data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
-                    budget = Budget.objects.filter(user=user, month=serializer.validated_data['date'].month).first()
+                    budget = Budget.objects.filter(user=user, month__month=serializer.validated_data['date'].month, month__year=serializer.validated_data['date'].year).first()
                     if budget:
                         old_amount = income.amount
                         new_amount = serializer.validated_data.get('amount', old_amount)
