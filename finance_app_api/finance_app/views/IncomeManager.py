@@ -60,7 +60,7 @@ class IncomeManager(APIView):
                     budget = Budget.objects.filter(user=user, month__month=serializer.validated_data['date'].month, month__year=serializer.validated_data['date'].year).first()
                     if budget:
                         old_amount = income.amount
-                        new_amount = serializer.validated_data.get('amount', old_amount)
+                        new_amount = serializer.validated_data['amount']
                         budget.current_amount += (new_amount - old_amount)
                         budget.save()
                         return Response(serializer.data, status=status.HTTP_200_OK)
