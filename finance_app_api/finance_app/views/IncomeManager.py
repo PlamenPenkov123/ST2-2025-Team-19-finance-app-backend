@@ -37,7 +37,6 @@ class IncomeManager(APIView):
         user = request.user
         data = request.data.copy()
         data['user'] = user.id
-        print(data)
         try:
             with transaction.atomic():
                 serializer = IncomeSerializer(data=data)

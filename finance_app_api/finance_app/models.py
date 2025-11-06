@@ -63,9 +63,11 @@ class Income(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='incomes')
     income_category = models.ForeignKey(IncomeCategory, null=True, on_delete=models.CASCADE, related_name='incomes')
     budget = models.ForeignKey(Budget, null=True, on_delete=models.CASCADE, related_name='incomes')
-    amount = models.FloatField(
-        default=0.00,
-        validators=[MinValueValidator(0.00)]
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        validators=[MinValueValidator(Decimal('0.00'))]
     )
     description = models.TextField(blank=True, null=True)
     source = models.CharField(max_length=200)
@@ -75,14 +77,17 @@ class Income(models.Model):
 
     class Meta:
         ordering = ['-date', '-created_at']
-    
+
+
 class Expense(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
     expense_category = models.ForeignKey(ExpenseCategory, null=True, on_delete=models.CASCADE, related_name='expenses')
     budget = models.ForeignKey(Budget, null=True, on_delete=models.CASCADE, related_name='expenses')
-    amount = models.FloatField(
-        default=0.00,
-        validators=[MinValueValidator(0.00)]
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        validators=[MinValueValidator(Decimal('0.00'))]
     )
     description = models.TextField(blank=True, null=True)
     date = models.DateField()
@@ -92,7 +97,6 @@ class Expense(models.Model):
 
     class Meta:
         ordering = ['-date', '-created_at']
-    
 
 
 
