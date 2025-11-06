@@ -6,28 +6,28 @@ from .models import Budget, User, Income, Expense, IncomeCategory, ExpenseCatego
 class IncomeCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = IncomeCategory
-        fields = [ 'name', 'slug']
+        fields = ['id', 'name', 'slug']
 
 class ExpenseCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ExpenseCategory
-        fields = ['name', 'slug']
+        fields = ['id', 'name', 'slug']
 class PaymentMethodSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentMethod
-        fields = ['name', 'slug']
+        fields = ['id', 'name', 'slug']
 class BudgetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Budget
-        fields = ['user', 'amount', 'current_amount', 'month']
+        fields = ['id', 'user', 'amount', 'current_amount', 'month']
 class IncomeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Income
-        fields = [ 'amount', 'description', 'source', 'date', 'user', 'income_category']
+        fields = ['id', 'amount', 'description', 'source', 'date', 'user', 'income_category']
 class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
-        fields = ['amount', 'description', 'source', 'date', 'user', 'expense_category']
+        fields = ['id', 'amount', 'description', 'source', 'date', 'user', 'expense_category']
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
