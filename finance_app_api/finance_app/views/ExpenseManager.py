@@ -22,8 +22,7 @@ class ExpenseManager(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     # Get a single expense by it's id
-    @api_view(['GET'])
-    def getById(request, expense_id):
+    def get(request, expense_id):
         user = request.user
         try:
             expense = Expense.objects.get(id=expense_id, user=user)    

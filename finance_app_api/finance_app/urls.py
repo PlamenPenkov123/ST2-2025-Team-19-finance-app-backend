@@ -23,9 +23,9 @@ urlpatterns = [
 
     path('budgets', BudgetManager.as_view(), name='get_budgets'),
 
-    path('incomes', IncomeManager.as_view(), name='get_incomes'),
-    path('incomes/<int:income_id>', IncomeManager.getById, name='get_income_by_id'),
+    path('incomes', IncomeManager.as_view(), name='incomes'),
+    path('incomes/<int:income_id>', IncomeManager.as_view(), name='income-details'),
 
-    path('expenses', ExpenseManager.as_view(), name='get_expenses'),
-    path('expenses/<int:expense_id>/', ExpenseManager.getById, name='get_expense_by_id'),
+    path('expenses', ExpenseManager.as_view(), name='expenses'),
+    path('expenses/<int:expense_id>/', ExpenseManager.as_view(), name='expense-details'),
 ]

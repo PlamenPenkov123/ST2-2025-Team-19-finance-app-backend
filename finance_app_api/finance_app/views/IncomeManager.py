@@ -22,8 +22,7 @@ class IncomeManager(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     # Get a single income by it's id
-    @api_view(['GET'])    
-    def getById(self, request, income_id):
+    def get(self, request, income_id):
         user = request.user
         try:
             income = Income.objects.get(id=income_id, user=user)
