@@ -63,12 +63,14 @@ class ExpenseManager(APIView):
         user = request.user
         data = request.data.copy()
         data['user'] = user.id
-        
+
         try:
             with transaction.atomic():
                 expense = Expense.objects.get(id=expense_id, user=user)
                 serializer = ExpenseSerializer(expense, data=data, partial=True)
                 if serializer.is_valid():
+                    serializer.save()
+                    expense.refresh_from_db()
                     budget = Budget.objects.filter(user=user, month__month=serializer.validated_data['date'].month, month__year=serializer.validated_data['date'].year).first()
                     if budget:
                         old_amount = expense.amount
