@@ -27,7 +27,7 @@ class IncomeSerializer(serializers.ModelSerializer):
 class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
-        fields = ['id', 'amount', 'description', 'source', 'date', 'user', 'expense_category']
+        fields = ['id', 'amount', 'description', 'payment_method', 'date', 'user', 'expense_category']
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
