@@ -86,7 +86,7 @@ class ExpenseManager(APIView):
         try:
             with transaction.atomic():
                 expense = Expense.objects.get(id=expense_id, user=user)
-                budget = Budget.objects.filter(user=user, expense=expense).first()
+                budget = Budget.objects.filter(user=user, month__month=expense.date.month, month__year=expense.date.year).first()
                 if budget:
                     budget.current_amount += expense.amount
                     budget.save()
