@@ -7,6 +7,9 @@ from django.db import transaction
 from knox.auth import TokenAuthentication
 from ..models import Budget, Income, Expense
 from ..serializers import BudgetSerializer
+from ..serializers import IncomeSerializer
+from ..serializers import ExpenseSerializer
+
 
 class BudgetManager(APIView):
     permission_classes = [IsAuthenticated]
@@ -51,8 +54,8 @@ class BudgetManager(APIView):
             'total_expense': total_expense,
             # NOTE: You are using BudgetSerializer. You probably mean to use
             # an IncomeSerializer and an ExpenseSerializer here.
-            'incomes': BudgetSerializer(incomes, many=True).data,
-            'expenses': BudgetSerializer(expenses, many=True).data,
+            'incomes': IncomeSerializer(incomes, many=True).data,
+            'expenses': ExpenseSerializer(expenses, many=True).data,
             'balance': balance,
             'amount': budget_amount,             # Here is the budget amount
             'current_amount': current_budget_amount  # Here is the current amount
