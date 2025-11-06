@@ -76,7 +76,7 @@ class IncomeManager(APIView):
         try:
             with transaction.atomic():
                 income = Income.objects.get(id=income_id, user=user)
-                budget = Budget.objects.filter(user=user, month=income.date.month).first()
+                budget = Budget.objects.filter(user=user, month__month=income.date.month, month__year=income.date.year).first()
                 if budget:
                     budget.current_amount -= income.amount
                     budget.save()
