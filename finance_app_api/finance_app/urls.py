@@ -27,5 +27,5 @@ urlpatterns = [
     path('incomes/<int:income_id>', IncomeManager.as_view(), name='income-details'),
 
     path('expenses', ExpenseManager.as_view(), name='expenses'),
-    path('expenses/<int:expense_id>/', ExpenseManager.as_view(), name='expense-details'),
+    path('expenses/<int:expense_id>', ExpenseManager.as_view(), name='expense-details'),
 ]
