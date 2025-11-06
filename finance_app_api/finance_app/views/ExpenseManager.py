@@ -63,27 +63,47 @@ class ExpenseManager(APIView):
         user = request.user
         data = request.data.copy()
         data['user'] = user.id
-
         try:
             with transaction.atomic():
-                expense = Expense.objects.get(id=expense_id, user=user)
-                serializer = ExpenseSerializer(expense, data=data, partial=True)
+                income = Expense.objects.get(id=expense_id, user=user)
+
+                old_amount = income.amount
+                old_date = income.date
+
+                serializer = ExpenseSerializer(income, data=data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
-                    expense.refresh_from_db()
-                    budget = Budget.objects.filter(user=user, month__month=serializer.validated_data['date'].month, month__year=serializer.validated_data['date'].year).first()
-                    if budget:
-                        old_amount = expense.amount
-                        new_amount = serializer.validated_data['amount']
-                        budget.current_amount += (new_amount - old_amount)
-                        budget.save()
-                        serializer.save()
-                        return Response(serializer.data, status=status.HTTP_200_OK)
-                    else:
-                        return Response({"error": "No budget set for this month"}, status=status.HTTP_400_BAD_REQUEST)
+                    income.refresh_from_db()  # ✅ refresh updated data
+
+                    new_amount = income.amount
+                    new_date = income.date
+
+                    # Handle the case where the date/month changed
+                    old_budget = Budget.objects.filter(
+                        user=user,
+                        month__month=old_date.month,
+                        month__year=old_date.year
+                    ).first()
+                    new_budget = Budget.objects.filter(
+                        user=user,
+                        month__month=new_date.month,
+                        month__year=new_date.year
+                    ).first()
+
+                    # If the income was in a different month before
+                    if old_budget and old_budget != new_budget:
+                        old_budget.current_amount -= old_amount
+                        old_budget.save()
+
+                    if new_budget:
+                        # Adjust new budget with new amount
+                        new_budget.current_amount += (new_amount if old_budget != new_budget else (new_amount - old_amount))
+                        new_budget.save()
+
+                    return Response(serializer.data, status=status.HTTP_200_OK)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Expense.DoesNotExist:
-            return Response({"error": "Expense not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Income not found"}, status=status.HTTP_404_NOT_FOUND)
         
     # Delete an expense
     def delete(self, request, expense_id):
