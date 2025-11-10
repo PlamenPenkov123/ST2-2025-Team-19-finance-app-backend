@@ -21,13 +21,16 @@ class BudgetSerializer(serializers.ModelSerializer):
         model = Budget
         fields = ['id', 'user', 'amount', 'current_amount', 'month']
 class IncomeSerializer(serializers.ModelSerializer):
+    income_category = IncomeCategorySerializer(read_only=True)
     class Meta:
         model = Income
         fields = ['id', 'amount', 'description', 'source', 'date', 'user', 'income_category']
 class ExpenseSerializer(serializers.ModelSerializer):
+    payment_method = PaymentMethodSerializer(read_only=True)
+    expense_category = ExpenseCategorySerializer(read_only=True)
     class Meta:
         model = Expense
-        fields = ['id', 'amount', 'description', 'payment_method__name', 'date', 'user', 'expense_category']
+        fields = ['id', 'amount', 'description', 'payment_method', 'date', 'user', 'expense_category']
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
