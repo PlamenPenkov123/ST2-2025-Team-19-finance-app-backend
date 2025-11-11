@@ -64,7 +64,7 @@ class ExpenseCategory(models.Model):
     
 class Income(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='incomes')
-    income_category = models.ForeignKey(IncomeCategory, null=True, on_delete=models.CASCADE, related_name='incomes')
+    income_category = models.ForeignKey(IncomeCategory, null=True, on_delete=models.SET_NULL, related_name='incomes')
     budget = models.ForeignKey(Budget, null=True, on_delete=models.CASCADE, related_name='incomes')
     amount = models.DecimalField(
         max_digits=12,
@@ -84,7 +84,7 @@ class Income(models.Model):
 
 class Expense(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
-    expense_category = models.ForeignKey(ExpenseCategory, null=True, on_delete=models.CASCADE, related_name='expenses')
+    expense_category = models.ForeignKey(ExpenseCategory, null=True, on_delete=models.SET_NULL, related_name='expenses')
     budget = models.ForeignKey(Budget, null=True, on_delete=models.CASCADE, related_name='expenses')
     amount = models.DecimalField(
         max_digits=12,

@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from finance_app.models import Budget, ExpenseCategory, Expense, Income, IncomeCategory, User, PaymentMethod
+from finance_app.serializers import PaymentMethodSerializer
 
 # Register your models here.
 @admin.register(User)
@@ -26,7 +27,7 @@ class ExpenseCategoryAdmin(admin.ModelAdmin):
 @admin.register(Income)
 class IncomeAdmin(admin.ModelAdmin):
     model = Income
-    list_display = ('user', 'income_category__name', 'amount', 'source', 'date', 'created_at')
+    list_display = ('user', 'income_category', 'amount', 'source', 'date', 'created_at')
     search_fields = ('user__email', 'income_category__name', 'source')
     ordering = ('-date', '-created_at')
 @admin.register(Expense)
@@ -44,6 +45,6 @@ class PaymentMethodAdmin(admin.ModelAdmin):
 @admin.register(Budget)
 class BudgetAdmin(admin.ModelAdmin):
     model = Budget
-    list_display = ('user', 'amount', 'month', 'created_at')
+    list_display = ('user', 'amount', 'current_amount', 'month', 'created_at')
     search_fields = ('user__email', 'month')
     ordering = ('-month', '-created_at')

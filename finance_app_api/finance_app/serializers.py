@@ -3,34 +3,6 @@ from django.contrib.auth import authenticate
 from .models import Budget, User, Income, Expense, IncomeCategory, ExpenseCategory, PaymentMethod
 
 
-class IncomeCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = IncomeCategory
-        fields = ['id', 'name', 'slug']
-
-class ExpenseCategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ExpenseCategory
-        fields = ['id', 'name', 'slug']
-class PaymentMethodSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PaymentMethod
-        fields = ['id', 'name', 'slug']
-class BudgetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Budget
-        fields = ['id', 'user', 'amount', 'current_amount', 'month']
-class IncomeSerializer(serializers.ModelSerializer):
-    income_category = IncomeCategorySerializer(read_only=True)
-    class Meta:
-        model = Income
-        fields = ['id', 'amount', 'description', 'source', 'date', 'user', 'income_category']
-class ExpenseSerializer(serializers.ModelSerializer):
-    payment_method = PaymentMethodSerializer(read_only=True)
-    expense_category = ExpenseCategorySerializer(read_only=True)
-    class Meta:
-        model = Expense
-        fields = ['id', 'amount', 'description', 'payment_method', 'date', 'user', 'expense_category']
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -78,3 +50,43 @@ class UserLoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid email or password.")
         data['user'] = user
         return data
+
+class IncomeCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IncomeCategory
+        fields = ['id', 'name', 'slug']
+
+class ExpenseCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ExpenseCategory
+        fields = ['id', 'name', 'slug']
+
+class PaymentMethodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentMethod
+        fields = ['id', 'name', 'slug']
+
+class BudgetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Budget
+        fields = ['id', 'user', 'amount', 'current_amount', 'month']
+
+class IncomeSerializer(serializers.ModelSerializer):
+    income_category = serializers.PrimaryKeyRelatedField(
+        queryset=IncomeCategory.objects.all()
+    )
+
+    class Meta:
+        model = Income
+        fields = ['id', 'amount', 'description', 'source', 'date', 'user', 'income_category']
+
+class ExpenseSerializer(serializers.ModelSerializer):
+    payment_method = serializers.PrimaryKeyRelatedField(
+        queryset=PaymentMethod.objects.all()
+    )
+    expense_category = serializers.PrimaryKeyRelatedField(
+        queryset=ExpenseCategory.objects.all()
+    )
+    class Meta:
+        model = Expense
+        fields = ['id', 'amount', 'description', 'payment_method', 'date', 'user', 'expense_category']

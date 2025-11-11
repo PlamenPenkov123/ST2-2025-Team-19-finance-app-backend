@@ -44,6 +44,7 @@ class IncomeManager(APIView):
                         budget.current_amount += serializer.validated_data['amount']
                         budget.save()
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Income.DoesNotExist:
             return Response({"error": "Income not found"}, status=status.HTTP_404_NOT_FOUND)
