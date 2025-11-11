@@ -70,23 +70,39 @@ class BudgetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Budget
         fields = ['id', 'user', 'amount', 'current_amount', 'month']
-
 class IncomeSerializer(serializers.ModelSerializer):
-    income_category = serializers.PrimaryKeyRelatedField(
-        queryset=IncomeCategory.objects.all()
+    # Use this for write operations (accepting an ID)
+    income_category_id = serializers.PrimaryKeyRelatedField(
+        source='income_category',  # tells DRF which field to populate
+        queryset=IncomeCategory.objects.all(),
+        write_only=True
     )
+    # Use this for read operations (nested object)
+    income_category = IncomeCategorySerializer(read_only=True)
 
     class Meta:
         model = Income
-        fields = ['id', 'amount', 'description', 'source', 'date', 'user', 'income_category']
+        fields = ['id', 'amount', 'description', 'source', 'date', 'user', 'income_category', 'income_category_id']
 
 class ExpenseSerializer(serializers.ModelSerializer):
-    payment_method = serializers.PrimaryKeyRelatedField(
-        queryset=PaymentMethod.objects.all()
+    # Write-only ID fields
+    expense_category_id = serializers.PrimaryKeyRelatedField(
+        source='expense_category',
+        queryset=ExpenseCategory.objects.all(),
+        write_only=True
     )
-    expense_category = serializers.PrimaryKeyRelatedField(
-        queryset=ExpenseCategory.objects.all()
+    payment_method_id = serializers.PrimaryKeyRelatedField(
+        source='payment_method',
+        queryset=PaymentMethod.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True
     )
+
+    # Read-only nested fields
+    expense_category = ExpenseCategorySerializer(read_only=True)
+    payment_method = PaymentMethodSerializer(read_only=True)
+
     class Meta:
         model = Expense
-        fields = ['id', 'amount', 'description', 'payment_method', 'date', 'user', 'expense_category']
+        fields = ['id', 'amount', 'description', 'date', 'user', 'expense_category', 'expense_category_id', 'payment_method', 'payment_method_id']
